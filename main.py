@@ -44,14 +44,16 @@ def train(model, memory, optimizer, batch_size, discount_factor):
     return loss.item()
 
 
-def run_episodes(model, memory, env, num_episodes, batch_size, discount_factor, learn_rate):
+def run_episodes(model, memory, env, num_episodes, batch_size, discount_factor, learn_rate, optim_steps):
     optimizer = optim.Adam(model.parameters(), learn_rate)
 
     global_steps = 0  # Count the steps (do not reset at episode start, to compute epsilon)
     episode_durations = []  #
+    losses = []
     for i in range(num_episodes):
         state = env.reset()
         episode_length = 0
+        print(f"episode {i}")
 
         done = False
         while not done:
@@ -62,37 +64,42 @@ def run_episodes(model, memory, env, num_episodes, batch_size, discount_factor, 
 
             memory.push((state, action, reward, next_state, done))
 
-            loss = train(model, memory, optimizer, batch_size, discount_factor)
-
             state = next_state
             episode_length += 1
             global_steps += 1
 
+        loss = 0
+        for _ in range(optim_steps):
+            loss += train(model, memory, optimizer, batch_size, discount_factor)
+
         episode_durations.append(episode_length)
+        losses.append(loss / optim_steps)
 
     print(global_steps)
-    return episode_durations
+    return episode_durations, losses
 
 
 def main():
-    num_episodes = 100
+    num_episodes = 5000
     batch_size = 64
     discount_factor = 0.8
-    learn_rate = 1e-3
+    learn_rate = 5e-4
     num_hidden = 128
+    optimization_steps_per_episode = 30
 
     seed = 42  # This is not randomly chosen
     random.seed(seed)
     torch.manual_seed(seed)
 
-    env = gym.envs.make('CartPole-v0')
+    env = gym.envs.make('MountainCar-v0')
     env.seed(seed)
 
     memory = BasicReplayMemory(10000)
     model = QNetwork(num_hidden)
 
-    episode_durations = run_episodes(model, memory, env, num_episodes, batch_size, discount_factor, learn_rate)
+    episode_durations, losses = run_episodes(model, memory, env, num_episodes, batch_size, discount_factor, learn_rate, optimization_steps_per_episode)
     plot.episode_durations(episode_durations)
+    plot.episode_durations(losses)
 
 
 if __name__ == "__main__":
