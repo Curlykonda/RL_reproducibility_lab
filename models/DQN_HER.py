@@ -3,16 +3,16 @@ from torch import optim
 import torch.nn.functional as F
 import random
 
-from replay_memories.BasicReplayMemory import BasicReplayMemory
+from replay_memories.HindsightExperienceReplay import HindsightExperienceReplayMemory
 from QNetwork import *
 import plot
 from utils import *
 import gym
 
 
-class DQN:
-    def __init__(self, env_name, replay_memory=BasicReplayMemory):
-        self.num_episodes = 100
+class DQN_HER:
+    def __init__(self, env_name, replay_memory=HindsightExperienceReplayMemory):
+        self.num_episodes = 5000
         self.batch_size = 64
         self.discount_factor = 0.99
         self.learn_rate = 1e-3
@@ -34,11 +34,11 @@ class DQN:
 
     @staticmethod
     def run(env_name):
-        episode_durations, max_positions, max_positions_per_ep = DQN(env_name).__run_episodes()
+        episode_durations, max_positions, max_positions_per_ep = DQN_HER(env_name).__run_episodes()
 
         plot.episode_durations(episode_durations)
         plot.episode_durations(max_positions, max_positions_per_ep)
-        
+
     def __train(self):
         if len(self.memory) < self.batch_size:
             return None
@@ -79,6 +79,7 @@ class DQN:
             episode_length = 0
             print(f"episode {i}")
             ep_max_position = -1
+            ep_best_state = None
             done = False
             while not done:
                 epsilon = get_epsilon(global_steps, successes)
@@ -86,15 +87,18 @@ class DQN:
                 action = select_action(self.model, state, epsilon)
                 next_state, reward, done, _ = self.env.step(action)
 
-                self.memory.push((state, action, reward, next_state, done))
+                self.memory.push_to_buffer((state, action, reward, next_state, done))
 
                 state = next_state
                 if state[0] > max_position:
                     max_position = state[0]
                 if state[0] > ep_max_position:
                     ep_max_position = state[0]
+                    ep_best_state = state
                 episode_length += 1
                 global_steps += 1
+
+            self.memory.push_with_replay_goal(ep_best_state)
 
             loss = 0
             for _ in range(self.optimization_steps_per_episode):

@@ -7,8 +7,8 @@ def smooth(x, N):
     return (cumsum[N:] - cumsum[:-N]) / float(N)
 
 def episode_durations(ep, ep2=None):
-    plt.plot(smooth(ep, 10))
+    plt.plot(smooth(ep, 1))
     if ep2:
-        plt.plot(smooth(ep2, 10))
+        plt.plot(smooth(ep2, 1))
     plt.title('Episode durations per episode')
     plt.show()
