@@ -89,7 +89,8 @@ class DQN_PER:
                 action = select_action(self.model, state, epsilon)
                 next_state, reward, done, _ = self.env.step(action)
 
-                self.memory.push((state, action, reward, next_state, done))
+                success = reward >= 0
+                self.memory.push((state, action, reward, next_state, success))
 
                 state = next_state
                 if state[0] > max_position:

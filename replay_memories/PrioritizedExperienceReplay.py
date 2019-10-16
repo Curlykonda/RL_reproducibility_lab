@@ -29,7 +29,7 @@ class PrioritizedExperienceReplayMemory:
             new_transition = transition[:-1] + (priority.item() + self.epsilon,)
             self.memory[self.__to_update[index]] = new_transition
 
-        max_priority = priorities.max().item()
+        max_priority = max([transition[-1] for transition in self.memory])
         if max_priority > self.max_priority:
             self.max_priority = max_priority
 
