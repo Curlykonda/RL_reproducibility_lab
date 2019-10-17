@@ -11,12 +11,23 @@ def smooth(x, N):
     cumsum = np.cumsum(np.insert(x, 0, 0))
     return (cumsum[N:] - cumsum[:-N]) / float(N)
 
+
+def episode_durations_uncer(ep):
+    mean = ep.mean(axis=0)
+    std = ep.var(axis=0)
+    plt.plot(smooth(mean, 1))
+    plt.fill_between(np.arange(ep.shape[1]), mean - std, mean + std, alpha=0.3)
+    plt.title('Episode durations per episode')
+    plt.show()
+
+
 def episode_durations(ep, ep2=None):
     plt.plot(smooth(ep, 1))
     if ep2:
         plt.plot(smooth(ep2, 1))
     plt.title('Episode durations per episode')
     plt.show()
+
 
 def visualize_policy(model):
     X = np.random.uniform(-1.2, 0.6, 10000)
@@ -43,5 +54,5 @@ def visualize_policy(model):
     for i in range(0, 3):
         recs.append(mpatches.Rectangle((0, 0), 1, 1, fc=sorted(colors.unique())[i]))
     plt.legend(recs, labels, loc=4, ncol=3)
-    #fig.savefig('Policy.png')
+    # fig.savefig('Policy.png')
     plt.show()

@@ -12,7 +12,8 @@ import gym
 
 class DQN_PER:
     def __init__(self, env_name, replay_memory=PrioritizedExperienceReplayMemory):
-        self.num_episodes = 100
+        self.num_exp = 10
+        self.num_episodes = 3000
         self.batch_size = 64
         self.discount_factor = 0.99
         self.learn_rate = 1e-3
@@ -34,9 +35,18 @@ class DQN_PER:
 
     @staticmethod
     def run(env_name):
-        model, episode_durations, max_positions, max_positions_per_ep = DQN_PER(env_name).__run_episodes()
+        episodes = None
+        for i in range(num_exp):
+            model, episode_durations, max_positions, max_positions_per_ep = DQN_PER(env_name).__run_episodes()
+            episode_durations = np.array(episode_durations).reshape(1, -1)
+            if episodes is None:
+                episodes = np.array(episode_durations)
+            else:
+                episodes = np.append(episodes, episode_durations, axis=0)
 
-        plot.episode_durations(episode_durations)
+        # mean = episodes.mean(axis=0)
+        # var = episodes.var(axis=0)
+        plot.episode_durations_uncer(episodes)
         plot.episode_durations(max_positions, max_positions_per_ep)
         plot.visualize_policy(model)
 
