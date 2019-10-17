@@ -12,7 +12,7 @@ import gym
 
 class DQN_HER:
     def __init__(self, env_name, replay_memory=HindsightExperienceReplayMemory):
-        self.num_episodes = 5000
+        self.num_episodes = 100
         self.batch_size = 64
         self.discount_factor = 0.99
         self.learn_rate = 1e-3
@@ -34,10 +34,11 @@ class DQN_HER:
 
     @staticmethod
     def run(env_name):
-        episode_durations, max_positions, max_positions_per_ep = DQN_HER(env_name).__run_episodes()
+        model, episode_durations, max_positions, max_positions_per_ep = DQN_HER(env_name).__run_episodes()
 
         plot.episode_durations(episode_durations)
         plot.episode_durations(max_positions, max_positions_per_ep)
+        plot.visualize_policy(model)
 
     def __train(self):
         if len(self.memory) < self.batch_size:
@@ -114,7 +115,7 @@ class DQN_HER:
             max_positions_per_ep.append(ep_max_position)
 
         print(global_steps)
-        return episode_durations, max_positions, max_positions_per_ep
+        return self.model, episode_durations, max_positions, max_positions_per_ep
 
 
 def compute_q_val(model, state, action):
