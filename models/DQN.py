@@ -1,12 +1,12 @@
 import torch
+from utils import plot
 from torch import optim
 import torch.nn.functional as F
 import random
 
 from replay_memories.BasicReplayMemory import BasicReplayMemory
-from QNetwork import *
-import plot
-from utils import *
+from .QNetwork import *
+from utils.utils import *
 import gym
 
 
@@ -39,7 +39,7 @@ class DQN:
         plot.episode_durations(episode_durations)
         plot.episode_durations(max_positions, max_positions_per_ep)
         plot.visualize_policy(model)
-        
+
     def __train(self):
         if len(self.memory) < self.batch_size:
             return None
