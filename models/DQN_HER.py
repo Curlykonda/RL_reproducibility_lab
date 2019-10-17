@@ -96,7 +96,8 @@ class DQN_HER:
         for i in range(self.num_episodes):
             state = self.env.reset()
             episode_length = 0
-            print(f"episode {i}")
+            if not i % 100:
+                print(f"episode {i}")
             ep_max_position = -1
             ep_best_state = None
             done = False
