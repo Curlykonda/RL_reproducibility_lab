@@ -55,7 +55,7 @@ class DQN_HER:
         # mean = episodes.mean(axis=0)
         # var = episodes.var(axis=0)
         plot.episode_durations_uncer(episodes)
-        plot.episode_durations(max_positions, max_positions_per_ep)
+        plot.episode_durations(mp.mean(axis=0), mppe.mean(axis=0))
         plot.visualize_policy(model)
 
     def __train(self):
