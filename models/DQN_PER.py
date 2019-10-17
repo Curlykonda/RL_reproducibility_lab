@@ -4,9 +4,9 @@ import torch.nn.functional as F
 import random
 
 from replay_memories.PrioritizedExperienceReplay import PrioritizedExperienceReplayMemory
-from QNetwork import *
-import plot
-from utils import *
+from .QNetwork import *
+from utils import plot
+from utils.utils import *
 import gym
 
 
