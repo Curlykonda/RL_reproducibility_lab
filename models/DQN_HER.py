@@ -21,12 +21,7 @@ class DQN_HER:
         self.optimization_steps_per_episode = 50
         self.replay_memory_size = 10000
 
-        self.seed = 42  # This is not randomly chosen
-        random.seed(self.seed)
-        torch.manual_seed(self.seed)
-
         self.env = gym.envs.make(env_name)
-        self.env.seed(self.seed)
 
         self.memory = replay_memory(self.replay_memory_size)
         self.model = QNetwork(self.env, self.num_hidden)
@@ -36,9 +31,22 @@ class DQN_HER:
     @staticmethod
     def run(env_name, num_exp=5):
         episodes = None
+        mp = None
+        mppe = None
         for i in range(num_exp):
             model, episode_durations, max_positions, max_positions_per_ep = DQN_HER(env_name).__run_episodes()
+
+            max_positions_per_ep = np.array(max_positions_per_ep).reshape(1, -1)
+            max_positions = np.array(max_positions).reshape(1, -1)
             episode_durations = np.array(episode_durations).reshape(1, -1)
+            if mp is None:
+                mp = max_positions
+            else:
+                mp = np.append(mp, max_positions, axis=0)
+            if mppe is None:
+                mppe = max_positions_per_ep
+            else:
+                mppe = np.append(mppe, max_positions_per_ep, axis=0)
             if episodes is None:
                 episodes = np.array(episode_durations)
             else:
