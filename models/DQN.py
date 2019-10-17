@@ -12,12 +12,12 @@ import gym
 
 class DQN:
     def __init__(self, env_name, replay_memory=BasicReplayMemory):
-        self.num_episodes = 3000
+        self.num_episodes = 500
         self.batch_size = 64
-        self.discount_factor = 0.99
+        self.discount_factor = 0.7
         self.learn_rate = 1e-3
-        self.num_hidden = 256
-        self.optimization_steps_per_episode = 50
+        self.num_hidden = 128
+        self.optimization_steps_per_episode = 20
         self.replay_memory_size = 10000
 
         self.seed = 42  # This is not randomly chosen
@@ -34,15 +34,15 @@ class DQN:
 
     @staticmethod
     def run(env_name):
-        model, episode_durations, max_positions, max_positions_per_ep = DQN(env_name).__run_episodes()
+        model, episode_durations= DQN(env_name).__run_episodes()
 
         plot.episode_durations(episode_durations)
-        plot.episode_durations(max_positions, max_positions_per_ep)
+        #plot.episode_durations(max_positions, max_positions_per_ep)
         plot.visualize_policy(model)
         
     def __train(self):
         if len(self.memory) < self.batch_size:
-            return None
+            return 0
 
         transitions = self.memory.sample(self.batch_size)
 
@@ -70,16 +70,12 @@ class DQN:
     def __run_episodes(self):
         global_steps = 0  # Count the steps (do not reset at episode start, to compute epsilon)
         episode_durations = []
-        max_positions = []
-        max_position = -1
-        max_positions_per_ep = []
         successes = 0
         losses = []
         for i in range(self.num_episodes):
             state = self.env.reset()
             episode_length = 0
             print(f"episode {i}")
-            ep_max_position = -1
             done = False
             while not done:
                 epsilon = get_epsilon(global_steps, successes)
@@ -90,10 +86,6 @@ class DQN:
                 self.memory.push((state, action, reward, next_state, done))
 
                 state = next_state
-                if state[0] > max_position:
-                    max_position = state[0]
-                if state[0] > ep_max_position:
-                    ep_max_position = state[0]
                 episode_length += 1
                 global_steps += 1
 
@@ -101,17 +93,15 @@ class DQN:
             for _ in range(self.optimization_steps_per_episode):
                 loss += self.__train()
 
-            if state[0] > 0.5:
+            if episode_length == 200:
                 successes += 1
                 self.scheduler.step()
 
             episode_durations.append(episode_length)
             losses.append(loss / self.optimization_steps_per_episode)
-            max_positions.append(max_position)
-            max_positions_per_ep.append(ep_max_position)
 
         print(global_steps)
-        return self.model, episode_durations, max_positions, max_positions_per_ep
+        return self.model, episode_durations
 
 
 def compute_q_val(model, state, action):
