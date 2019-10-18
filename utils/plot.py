@@ -14,11 +14,13 @@ def smooth(x, N):
 
 def episode_durations_uncer(ep):
     mean = ep.mean(axis=0)
-    std = ep.var(axis=0)
-    plt.plot(smooth(mean, 10))
-    plt.fill_between(np.arange(ep.shape[1]), mean - std, mean + std, alpha=0.3)
+    smoothed = smooth(mean, 30)
+    std = ep.std(axis=0)[:smoothed.shape[0]]
+    plt.plot(smoothed)
+    plt.fill_between(np.arange(smoothed.shape[0]), smoothed - std, smoothed + std, alpha=0.3)
     plt.title('Episode durations per episode')
     plt.savefig('episode_duration_uncer')
+    plt.show()
 
 
 def episode_durations(ep, ep2=None):
@@ -26,6 +28,7 @@ def episode_durations(ep, ep2=None):
     plt.plot(smooth(ep2, 10))
     plt.title('Episode durations per episode')
     plt.savefig('episode_duration')
+    plt.show()
 
 
 def visualize_policy(model):
